@@ -11,7 +11,7 @@ interface LightOptions {
  * status is zero if the request was executed successfully
  */
 interface PostLightResponse {
-    "status": number
+    "status": number | string
 }
 
 export abstract class LightAPI {

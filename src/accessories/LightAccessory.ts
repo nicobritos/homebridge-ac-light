@@ -70,7 +70,7 @@ export class LightAccessory implements AccessoryPlugin {
 
         try {
             let response = await LightAPI.setPower(this.light.on);
-            if (response.data.status !== 0) {
+            if (response.data.status != 0) {
                 this.log.error("Error setting light status: Status is not zero: " + response.data.status);
                 callback(new Error("Status is not zero"));
             } else {
