@@ -6,6 +6,7 @@ import {
     PlatformConfig,
     Service,
     Characteristic,
+    Categories
 } from 'homebridge';
 
 import {PLATFORM_NAME, PLUGIN_NAME} from './settings';
@@ -99,7 +100,7 @@ export class ExampleHomebridgePlatform implements DynamicPlatformPlugin {
                 this.log.info('Adding new accessory:', device.displayName);
 
                 // create a new accessory
-                const accessory = new this.api.platformAccessory(device.displayName, device.uid);
+                let accessory = new this.api.platformAccessory(device.displayName, device.uid, Categories.LIGHTBULB);
 
                 // store a copy of the device object in the `accessory.context`
                 // the `context` property can be used to store any data about the accessory you may need
