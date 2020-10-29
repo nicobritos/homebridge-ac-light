@@ -15,15 +15,12 @@ interface PostLightResponse {
 }
 
 export abstract class LightAPI {
-    static lightEndpoint: string;
-
     static getState(): Promise<AxiosResponse<LightOptions>> {
-        return APIUtils.get(this.lightEndpoint);
+        return APIUtils.get();
     }
 
     static setPower(on: boolean): Promise<AxiosResponse<PostLightResponse>> {
         return APIUtils.post(
-            this.lightEndpoint,
             {
                 setPower: on ? 1 : 0
             } as Partial<LightOptions>

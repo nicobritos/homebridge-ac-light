@@ -9,6 +9,7 @@ import {
 import {Light} from '../models/Light';
 import {LightAPI} from '../api/LightAPI';
 import {AccessoryPlugin} from 'homebridge/lib/api';
+import {APIUtils} from '../api/APIUtils';
 
 interface LightConfiguration extends AccessoryConfig {
     url: string | undefined
@@ -35,6 +36,8 @@ export class LightAccessory implements AccessoryPlugin {
         if (!this.config.url) {
             throw new Error("URL not supplied");
         }
+
+        APIUtils.URL = this.config.url;
 
         this.service = new this.hap.Service.Lightbulb(config.name);
 
