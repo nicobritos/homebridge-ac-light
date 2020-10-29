@@ -8,5 +8,5 @@ let hap: HAP;
  */
 export = (api: API) => {
     hap = api.hap;
-    api.registerAccessory("Light", LightAccessory);
+    api.registerAccessory("nico-esp8266-light", LightAccessory);
 };

@@ -10,6 +10,10 @@ import {Light} from '../models/Light';
 import {LightAPI} from '../api/LightAPI';
 import {AccessoryPlugin} from 'homebridge/lib/api';
 
+interface LightConfiguration extends AccessoryConfig {
+    url: string | undefined
+}
+
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
@@ -21,13 +25,18 @@ export class LightAccessory implements AccessoryPlugin {
     private light: Light = new Light();
     private log: Logging;
     private hap: HAP;
+    private config: LightConfiguration;
 
     constructor(log: Logging, config: AccessoryConfig, api: API) {
         this.log = log;
         this.hap = api.hap;
-        this.service = new this.hap.Service.Lightbulb(config.name);
+        this.config = config as LightConfiguration;
 
-        this.log.debug(JSON.stringify(config));
+        if (!this.config.url) {
+            throw new Error("URL not supplied");
+        }
+
+        this.service = new this.hap.Service.Lightbulb(config.name);
 
         // register handlers for the On/Off Characteristic
         this.service.getCharacteristic(this.hap.Characteristic.On)
