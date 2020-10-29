@@ -1,65 +1,71 @@
 import {
     Service,
-    PlatformAccessory,
     CharacteristicValue,
     CharacteristicSetCallback,
-    CharacteristicGetCallback,
+    CharacteristicGetCallback, AccessoryConfig, API, Logging,
+    CharacteristicEventTypes,
+    HAP,
 } from 'homebridge';
-import {ExampleHomebridgePlatform} from '../platform';
 import {Light} from '../models/Light';
 import {LightAPI} from '../api/LightAPI';
+import {AccessoryPlugin} from 'homebridge/lib/api';
 
 /**
  * Platform Accessory
  * An instance of this class is created for each accessory your platform registers
  * Each accessory may expose multiple services of different service types.
  */
-export class LightAccessory {
+export class LightAccessory implements AccessoryPlugin {
+    private informationService: Service;
     private service: Service;
     private light: Light = new Light();
+    private log: Logging;
+    private hap: HAP;
 
-    constructor(
-        private readonly platform: ExampleHomebridgePlatform,
-        private readonly accessory: PlatformAccessory,
-    ) {
-        // set accessory information
-        this.accessory.getService(this.platform.Service.AccessoryInformation)!
-            .setCharacteristic(this.platform.Characteristic.Manufacturer, 'Nico')
-            .setCharacteristic(this.platform.Characteristic.Model, 'ESP8266')
-            .setCharacteristic(this.platform.Characteristic.SerialNumber, 'Nico-Light-With-Bug');
+    constructor(log: Logging, config: AccessoryConfig, api: API) {
+        this.log = log;
+        this.hap = api.hap;
+        this.service = new this.hap.Service.Lightbulb(config.name);
 
-        // get the LightBulb service if it exists, otherwise create a new LightBulb service
-        this.service = this.accessory.getService(this.platform.Service.Lightbulb)
-                       || this.accessory.addService(this.platform.Service.Lightbulb);
-
-        // set the service name, this is what is displayed as the default name on the Home app
-        // in this example we are using the name we stored in the `accessory.context` in the `discoverDevices` method.
-        this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.exampleDisplayName);
+        this.log.debug(JSON.stringify(config));
 
         // register handlers for the On/Off Characteristic
-        this.service.getCharacteristic(this.platform.Characteristic.On)
-            .on('set', this.setOn.bind(this))                // SET - bind to the `setOn` method below
-            .on('get', this.getOn.bind(this));               // GET - bind to the `getOn` method below
+        this.service.getCharacteristic(this.hap.Characteristic.On)
+            .on(CharacteristicEventTypes.SET, this.setOn.bind(this))
+            .on(CharacteristicEventTypes.GET, this.getOn.bind(this));
+
+        // set accessory information
+        this.informationService = new this.hap.Service.AccessoryInformation()
+            .setCharacteristic(this.hap.Characteristic.Manufacturer, 'Nico')
+            .setCharacteristic(this.hap.Characteristic.Model, 'ESP8266')
+            .setCharacteristic(this.hap.Characteristic.SerialNumber, 'Nico-Light-With-Bug');
+    }
+
+    public getServices(): Service[] {
+        return [
+            this.informationService,
+            this.service
+        ];
     }
 
     /**
      * Handle "SET" requests from HomeKit
      * These are sent when the user changes the state of an accessory, for example, turning on a Light bulb.
      */
-    async setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
+    private async setOn(value: CharacteristicValue, callback: CharacteristicSetCallback) {
         // implement your own code to turn your device on/off
         this.light.on = value as boolean;
 
         try {
             let response = await LightAPI.setPower(this.light.on);
             if (response.data.status !== 0) {
-                this.platform.log.error("Error setting light status: Status is not zero: " + response.data.status);
+                this.log.error("Error setting light status: Status is not zero: " + response.data.status);
                 callback(new Error("Status is not zero"));
             } else {
                 callback(null, this.light.on);
             }
         } catch (e) {
-            this.platform.log.error("Error setting light status: " + e);
+            this.log.error("Error setting light status: " + e);
             callback(e);
         }
     }
@@ -77,7 +83,7 @@ export class LightAccessory {
      * @example
      * this.service.updateCharacteristic(this.platform.Characteristic.On, true)
      */
-    getOn(callback: CharacteristicGetCallback) {
+    private getOn(callback: CharacteristicGetCallback) {
         this.refreshState();
 
         // the first argument should be null if there were no errors
@@ -96,10 +102,10 @@ export class LightAccessory {
                 this.light.overrideButton = !!value.data.overrideBut;
                 this.light.overrideWifi = !!value.data.overrideWifi;
 
-                this.service.updateCharacteristic(this.platform.Characteristic.On, this.light.on);
+                this.service.updateCharacteristic(this.hap.Characteristic.On, this.light.on);
             })
             .catch(reason => {
-                this.platform.log.error("Error getting state for light bulb: " + reason);
+                this.log.error("Error getting state for light bulb: " + reason);
             });
     }
 }

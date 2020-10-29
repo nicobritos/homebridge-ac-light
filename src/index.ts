@@ -1,11 +1,12 @@
-import {API} from 'homebridge';
+import {API, HAP} from 'homebridge';
+import {LightAccessory} from './accessories/LightAccessory';
 
-import {PLATFORM_NAME} from './settings';
-import {ExampleHomebridgePlatform} from './platform';
+let hap: HAP;
 
-/**
- * This method registers the platform with Homebridge
+/*
+ * Initializer function called when the plugin is loaded.
  */
 export = (api: API) => {
-    api.registerPlatform(PLATFORM_NAME, ExampleHomebridgePlatform);
+    hap = api.hap;
+    api.registerAccessory("Light", LightAccessory);
 };
