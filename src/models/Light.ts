@@ -1,7 +1,7 @@
 export class Light {
-    private _on: boolean;
-    private _overrideButton: boolean;
-    private _overrideWifi: boolean;
+    private _on: boolean = false;
+    private _overrideButton: boolean = false;
+    private _overrideWifi: boolean = false;
 
     public get on(): boolean {
         return this._on;
