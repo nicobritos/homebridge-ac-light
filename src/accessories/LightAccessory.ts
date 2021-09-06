@@ -71,7 +71,7 @@ export class LightAccessory implements AccessoryPlugin {
         try {
             let response = await LightAPI.setPower(this.light.on);
             if (response.data.status != 0) {
-                this.log.error("Error setting light status: Status is not zero: " + typeof response.data.status + " " + response.data.status);
+                this.log.error("Error setting light status: Status is not zero: " + response.data.status);
                 callback(new Error("Status is not zero"));
             } else {
                 callback(null, this.light.on);
@@ -108,22 +108,16 @@ export class LightAccessory implements AccessoryPlugin {
      * @private
      */
     private refreshState(): void {
-        this.setRefreshState();
-
         LightAPI.getState()
             .then(value => {
                 this.light.on = !!value.data.setPower;
                 this.light.overrideButton = !!value.data.overrideBut;
                 this.light.overrideWifi = !!value.data.overrideWifi;
 
-                this.setRefreshState();
+                this.service.updateCharacteristic(this.hap.Characteristic.On, this.light.on);
             })
             .catch(reason => {
                 this.log.error("Error getting state for light bulb: " + reason);
             });
-    }
-
-    private setRefreshState(): void {
-        this.service.updateCharacteristic(this.hap.Characteristic.On, this.light.on);
     }
 }
